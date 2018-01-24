@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>File</title>
+    <style>
+
+    </style>
+    <script src="AudioPlayer.class.js"></script>
+    <script src="StringAudio.class.js"></script>
+    <script>
+    var audio=new StringAudio(new AudioPlayer());
+    var counter=0;
+    function readBlob()
+    {
+      let files=document.getElementById("file").files;
+      if(!files.length)
+      {
+        alert("Please enter a file!");
+        return;
+      }
+      
+      let file=files[0];
+      
+      let reader=new FileReader();
+      
+      reader.onloadend=function(e){
+        if(e.target.readyState=FileReader.DONE)
+        {
+          let m=e.target.result;
+          if(m.length%2==1) m=m.concat("\x00");
+          audio.add(counter,m);
+          audio.start(counter);
+          counter++;
+        }
+      };
+      
+      let blob=file.slice(0, file.size);
+      reader.readAsBinaryString(blob);
+    }
+    </script>
+  </head>
+  <body>
+    <input type="file" id="file" name="file"/>
+    <button onclick="readBlob()">play</button>
+  </body>
+</html>

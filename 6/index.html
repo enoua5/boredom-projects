@@ -1,0 +1,207 @@
+<!--Thursday, December 28th, 2017-->
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Pentatonics</title>
+    <style>
+    div
+    {
+      display: inline-table;
+      margin-right: 50px;
+    }
+    </style>
+    <script src="AudioPlayer.class.js"></script>
+    <script src="StringAudio.class.js"></script>
+    <script>
+    var audio;
+    var notes=[];
+    var MAJOR_ROOT;
+    var MINOR_ROOT;
+    var song_count=0;
+    //values settable by slider
+    var SIG=2; //0 - 5
+    var dont_split=2;//1 - 6
+    var split_chance=0.3; //0 - 1
+    var maj_minRatio=0.5; //0 - 1
+    var bpm_mu=100; //16 - 256
+    var bpm_sig=20; //0 - 100
+    var length_mu=20; //1 - 200
+    var length_sig=10; //0 - 100
+    var dir_change_chance=0.2; //0 - 1
+    var return_to_root_chance=0.6; //0 - 1
+    
+    function l(what){return document.getElementById(what)}
+    function rand_normal(mu, sigma)
+    {
+	    var u=1-Math.random(); //subtration to flip [0,1) to (0,1] for the rare chance Math.random() == 0
+	    var v=1-Math.random();
+	    var g=((-2*Math.log(u))**0.5)*Math.cos(2*Math.PI*v);
+	    return sigma*g + mu;
+    }
+    function getBeats()
+    {
+      //whole, half, quarter, eighth, sixteenth, thirtysecond
+      let lengths="whqest";
+      let measure="w";
+      for(let dummy=0; dummy<5; dummy++)
+      {
+        let m=measure.split("");
+        for(let i=0; i<m.length; i++)
+        {
+          //don't split up too small notes notes
+          if(lengths.indexOf(m[i])!=lengths.length-dont_split)
+          {
+            if(Math.random()<split_chance)
+            {
+              let half=lengths[lengths.indexOf(m[i])+1];
+              m[i]=half+half;
+            }
+          }
+        }
+        measure=m.join("");
+      }
+      measure=measure.split("");
+      //translate to samples
+      measure=measure.map(n=>2**(lengths.length-lengths.indexOf(n)-1));
+      return measure;
+    }
+    function onLoad()
+    {
+      audio=new StringAudio(new AudioPlayer());
+      //pentatonic scale, 4 semitones
+      let skips=[2*4, 2*4, 3*4, 2*4, 3*4];
+      //where we are on the scale
+      let s=0;
+      //fill up the notes
+      for(let n=0; n<256; n+=skips[s])
+      {
+        notes.push(n);
+        if(++s>=skips.length) s=0;
+      }
+      //find roots
+      MAJOR_ROOT=Math.ceil((notes.length/2)/5)*5;
+      MINOR_ROOT=MAJOR_ROOT-1;
+      //set sliders
+      let sliders=[
+        ["sig","SIG"],
+        ["noSplit","dont_split"],
+        ["splitChance","split_chance"],
+        ["majMinRatio","maj_minRatio"],
+        ["bpmMu","bpm_mu"],
+        ["bpmSig","bpm_sig"],
+        ["lengthMu","length_mu"],
+        ["lengthSig","length_sig"],
+        ["dirChange","dir_change_chance"],
+        ["returnChance","return_to_root_chance"]
+      ];
+      for(let i=0; i<sliders.length; i++)
+      {
+        let s=sliders[i];
+        l(s[0]).value=window[s[1]];
+        l(s[0]+"_out").innerHTML=window[s[1]];
+      }
+    }
+    function playRandSong()
+    {
+      //let's make music!
+      let bpm=Math.round(rand_normal(bpm_mu, bpm_sig)/4);
+      if(bpm<=0) bpm=1;
+      if(bpm>=64) bpm=63;
+      let tempo=0b11000000|bpm;
+      let instrument=Math.floor(Math.random()*256);
+      let note=Math.random()<maj_minRatio?MAJOR_ROOT:MINOR_ROOT;
+      let root=note;
+      
+      let song=String.fromCharCode(tempo)+String.fromCharCode(instrument);
+      let measures=Math.round(rand_normal(length_mu, length_sig));
+      let dir=1;
+      for(let m=0; m<measures; m++)
+      {
+        let beats=getBeats();
+        for(let i=0; i<beats.length; i++)
+        {
+          for(let j=0; j<beats[i]; j++)
+          {
+            song=song.concat(String.fromCharCode(notes[note]));
+            let vol="\x80";
+            if(j==0) vol="\xa0";
+            if(i==0) vol="\xff";
+            song=song.concat(vol);
+          }
+          let change=Math.abs(rand_normal(0,SIG));
+          change*=dir;
+          if(Math.random()<dir_change_chance) dir*=-1;
+          note=Math.round(note+change);
+          if(note<0) note=0;
+          if(note>=notes.length) note=notes.length-1;
+        }
+        if(Math.random()<return_to_root_chance) note=root;
+      }
+      song_count++;
+      audio.add(song_count,song);
+      audio.start(song_count);
+      //make replay button
+      let button=document.createElement("button");
+      button.innerText="replay";
+      button.onclick=Function("audio.start("+song_count+")");
+      let li=document.createElement("li");
+      li.appendChild(button);
+      l("replays").appendChild(li);
+    }
+    function change(val, self)
+    {
+      window[val]=parseFloat(self.value);
+      l(self.id+"_out").innerHTML=window[val];
+    }
+    </script>
+  </head>
+  <body onload="onLoad()">
+    <div>
+      <button onclick="playRandSong()">Play a random "song"</button>
+      <ol id="replays">
+      
+      </ol>
+    </div>
+    <div>
+      <p>note change sigma</p>
+      <input id="sig" onchange="change('SIG',this)" type="range" min="0" max="5" step="0.01"/>
+      <span id="sig_out"></span>
+      
+      <p>do not split</p>
+      <input id="noSplit" onchange="change('dont_split',this)" type="range" min="1" max="6" step="1"/>
+      <span id="noSplit_out"></span>
+      
+      <p>Rythm split chance</p>
+      <input id="splitChance" onchange="change('split_chance',this)" type="range" min="0" max="1" step="0.01"/>
+      <span id="splitChance_out"></span>
+      
+      <p>major:minor ratio</p>
+      <input id="majMinRatio" onchange="change('maj_minRatio',this)" type="range" min="0" max="1" step="0.01"/>
+      <span id="majMinRatio_out"></span>
+      
+      <p>BPM mu</p>
+      <input id="bpmMu" onchange="change('bpm_mu',this)" type="range" min="16" max="256" step="0.01"/>
+      <span id="bpmMu_out"></span>
+      
+      <p>BPM sigma</p>
+      <input id="bpmSig" onchange="change('bpm_sig',this)" type="range" min="0" max="100" step="0.01"/>
+      <span id="bpmSig_out"></span>
+      
+      <p>length mu</p>
+      <input id="lengthMu" onchange="change('length_mu',this)" type="range" min="1" max="200" step="0.01"/>
+      <span id="lengthMu_out"></span>
+      
+      <p>length sigma</p>
+      <input id="lengthSig" onchange="change('length_sig',this)" type="range" min="0" max="100" step="0.01"/>
+      <span id="lengthSig_out"></span>
+      
+      <p>direction change chance</p>
+      <input id="dirChange" onchange="change('dir_change_chance',this)" type="range" min="0" max="1" step="0.01"/>
+      <span id="dirChange_out"></span>
+      
+      <p>return to root chance</p>
+      <input id="returnChance" onchange="change('return_to_root_chance',this)" type="range" min="0" max="1" step="0.01"/>
+      <span id="returnChance_out"></span>
+    </div>
+  </body>
+</html>

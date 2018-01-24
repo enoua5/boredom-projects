@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Simplex Map</title>
+    <style>
+    #c
+    {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100vw;
+      height: 50vw;
+    }
+    </style>
+    <script src="hash.js"></script>
+    <script src="perlin.js"></script>
+    <script src="Generators.class.js"></script>
+    <script src="keyboard.js"></script>
+    <script src="LandGenerator.class.js"></script>
+    <script>
+    var rand;
+    var cavnas;
+    var ctx;
+    var gen;
+    var viewX=0;
+    var viewZ=0;
+    const PAN_SPEED=100;
+    const SLICE_SPEED=PAN_SPEED/5;
+    
+    function panAndDraw()
+    {
+      if(k[37])//left
+        viewX-=PAN_SPEED;
+      if(k[39])//right
+        viewX+=PAN_SPEED;
+      if(k[38])//up
+        viewZ+=SLICE_SPEED;
+      if(k[40])//down
+        viewZ-=SLICE_SPEED;
+      gen.drawView(viewX);
+    }
+    function onLoad()
+    { 
+      canvas=document.getElementById("c");
+      ctx=canvas.getContext('2d');
+      
+      gen=new LandGenerator(ctx);
+      
+      panAndDraw();
+    }
+    </script>
+  </head>
+  <body onload="onLoad()">
+    <canvas id="c" width="1024" height="512"></canvas>
+  </body>
+</html>

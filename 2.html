@@ -1,0 +1,52 @@
+<!--Wednesday, October 4th, 2017-->
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Chaos</title>
+		<style>
+
+		</style>
+		<script>
+			var ctx;
+			const points=3;
+			const radius=500;
+			const size=1000;
+			var attr=[];
+			var cur;
+			function onLoad()
+			{
+				var c=document.getElementById('c');
+				c.width=size;
+				c.height=size;
+				cur={x: size/2, y: size/2}
+				ctx=c.getContext('2d');
+
+				//set up attractors
+				ctx.fillColor="#f00";
+				for(var i=0; i<points; i++)
+				{
+					let a=(i/points)*2*Math.PI;
+					let x=(Math.sin(a)*radius)+cur.x;
+					let y=(Math.cos(a)*radius)+cur.y;
+					attr.push({x,y});
+					ctx.fillRect(x,y,1,1);
+				}
+
+				//let's go
+				setInterval(nextPoint,0);
+			}
+			function nextPoint()
+			{
+				ctx.fillColor="#000";
+				var goto=attr[Math.floor(Math.random()*attr.length)];
+				var x=(goto.x+cur.x)/2;
+				var y=(goto.y+cur.y)/2;
+				cur={x,y};
+				ctx.fillRect(x,y,1,1);
+			}
+		</script>
+	</head>
+	<body onload="onLoad()">
+		<canvas id="c"></canvas>
+	</body>
+</html>

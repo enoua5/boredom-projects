@@ -1,0 +1,53 @@
+<!--Wednesday, December 6th, 2017-->
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Image Test</title>
+    <style>
+
+    </style>
+    <script src="entropy.js"></script>
+    <script>
+    var image;
+    var ctx;
+    function onLoad()
+    {
+      image=Entropy.watch({
+        //It's a smiley face
+        image:"\
+\x00\x00\xff\x00\x00\xff\xff\xff\x00\xff\xff\x00\xff\xff\x00\xff\xff\x00\x00\x00\xff\x00\x00\xff\
+\x00\x00\xff\xff\xff\x00\xff\xff\x00\xff\xff\x00\xff\xff\x00\xff\xff\x00\xff\xff\x00\x00\x00\xff\
+\xff\xff\x00\xff\xff\x00\x00\x00\x00\xff\xff\x00\xff\xff\x00\x00\x00\x00\xff\xff\x00\xff\xff\x00\
+\xff\xff\x00\xff\xff\x00\x00\x00\x00\xff\xff\x00\xff\xff\x00\x00\x00\x00\xff\xff\x00\xff\xff\x00\
+\xff\xff\x00\xff\xff\x00\xff\xff\x00\xff\xff\x00\xff\xff\x00\xff\xff\x00\xff\xff\x00\xff\xff\x00\
+\xff\xff\x00\xff\xff\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xff\xff\x00\xff\xff\x00\
+\x00\x00\xff\xff\xff\x00\xff\xff\x00\x00\x00\x00\x00\x00\x00\xff\xff\x00\xff\xff\x00\x00\x00\xff\
+\x00\x00\xff\x00\x00\xff\xff\xff\x00\xff\xff\x00\xff\xff\x00\xff\xff\x00\x00\x00\xff\x00\x00\xff"
+      });
+      ctx=document.getElementById("canvas").getContext('2d');
+      interval=setInterval(draw, 20);
+    }
+    function draw()
+    {
+      let data=image.image;
+      for(let x=0; x<8; x++)
+      {
+        for(let y=0; y<8; y++)
+        {
+          let redLoc=y*8*3 + x*3;
+          let greenLoc=redLoc + 1;
+          let blueLoc=redLoc + 2;
+          let red=Math.min(data[redLoc].charCodeAt(0),255).toString(16).padStart(2,"0");
+          let green=Math.min(data[greenLoc].charCodeAt(0),255).toString(16).padStart(2,"0");
+          let blue=Math.min(data[blueLoc].charCodeAt(0),255).toString(16).padStart(2,"0");
+          ctx.fillStyle="#"+red+green+blue;
+          ctx.fillRect(x*50,y*50,50,50);
+        }
+      }
+    }
+    </script>
+  </head>
+  <body onload="onLoad()">
+    <canvas id="canvas" width="400" height="400"></canvas>
+  </body>
+</html>
