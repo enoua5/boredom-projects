@@ -24,7 +24,7 @@
       let reader=new FileReader();
       
       reader.onloadend=function(e){
-        if(e.target.readyState=FileReader.DONE)
+        if(e.target.readyState==FileReader.DONE)
         {
           let m=e.target.result;
           if(m.length%2==1) m=m.concat("\x00");

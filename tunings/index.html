@@ -1,0 +1,35 @@
+<!-- Wednesday, March 14th, 2018 -->
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Tunings</title>
+    <style>
+    
+    </style>
+    <script src="Scale.class.js"></script>
+    <script src="AudioPlayer.class.js"></script>
+    <script src="spectro.js"></script>
+    <script src="keyboard.js"></script>
+    <script>
+      function onload()
+      {
+        drawSpectroCanvas();
+        setInterval(drawKeyboard,20);
+      }
+    </script>
+  </head>
+  <body onload="onload()">
+    Notes per octave: <input id="tones" type="number" value="12" step="1" min="1" onchange="drawSpectroCanvas()"/>
+    <canvas id="canvas" height="600" width="1000"></canvas>
+    <hr/>
+    <form onchange="setPlayerToScale(scales[document.querySelector('input[name=&quot;tuning&quot;]:checked').value])">
+      <input type="radio" name="tuning" value="equal" checked/> Equal<br/>
+      <input type="radio" name="tuning" value="pythag"/> Pythagorean<br/>
+      <input type="radio" name="tuning" value="harmonic"/> Harmonic<br/>
+      <input type="radio" name="tuning" value="antiHarmonic"/> Anti-harmonic<br/>
+      <input type="radio" name="tuning" value="random"/> Random<br/>
+    </form>
+    <canvas id="keyboard" width="800" height="100"></canvas>
+    <div style="height: 100px"></div>
+  </body>
+</html>
